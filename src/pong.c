@@ -71,19 +71,6 @@ void handle_input_pong(struct Pong* pong, ALLEGRO_KEYBOARD_STATE* state)
         {
             pong->player1.vy = 0;
         }
-
-        if (al_key_down(state, ALLEGRO_KEY_DOWN))
-        {
-            pong->player2.vy = PADDLE_SPEED;
-        }
-        else if (al_key_down(state, ALLEGRO_KEY_UP))
-        {
-            pong->player2.vy = -PADDLE_SPEED;
-        }
-        else
-        {
-            pong->player2.vy = 0;
-        }
     }
     else
     {
@@ -107,11 +94,40 @@ void handle_input_pong(struct Pong* pong, ALLEGRO_KEYBOARD_STATE* state)
     }
 }
 
+void player_2_AI_controlled(struct Pong* pong)
+{
+    if (pong->ball.vx < 0)
+    {
+        pong->player2.vy = 0;
+    }
+    else
+    {
+        float time = (pong->player2.x - pong->ball.x + pong->ball.width) / pong->ball.vx;
+        float predition_y = pong->ball.y + (pong->ball.vy * time);
+        float paddle_center = pong->player2.y + (pong->player2.height / 2);
+        float distance_to_target = predition_y + (pong->ball.height / 2) - paddle_center;
+
+        if (distance_to_target > 5)
+        {
+            pong->player2.vy = PADDLE_SPEED;
+        }
+        else if (distance_to_target < -5)
+        {
+            pong->player2.vy = -PADDLE_SPEED;
+        }
+        else
+        {
+            pong->player2.vy = 0;
+        }
+    }
+}
+
 void update_pong(struct Pong* pong, double dt)
 {
     if (pong->state == PLAY)
     {
         update_paddle(&pong->player1, dt);
+        player_2_AI_controlled(pong);
         update_paddle(&pong->player2, dt);
         update_ball(&pong->ball, dt);
 
